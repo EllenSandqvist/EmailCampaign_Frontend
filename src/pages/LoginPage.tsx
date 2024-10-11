@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-
+import { Link, Navigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,45 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+interface ResponseData {
+  loggedIn: Boolean;
+}
+
 export default function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogin: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Something went wrong");
+      }
+      const data: ResponseData = await response.json();
+      console.log(data);
+
+      //if loggedIn = true, redirect to campaigns page
+      if (data.loggedIn) {
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+      console.error("error");
+    }
+  };
+
+  if (isLoggedIn) {
+    return <Navigate to="/campaigns" replace={true} />;
+  }
+
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
@@ -21,12 +59,14 @@ export default function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4">
+        <form className="grid gap-4" onSubmit={handleLogin}>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
               required
             />
@@ -34,16 +74,22 @@ export default function LoginForm() {
           <div className="grid gap-2">
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
-              <Link to="#" className="ml-auto inline-block text-sm underline">
+              {/* <Link to="#" className="ml-auto inline-block text-sm underline">
                 Forgot your password?
-              </Link>
+              </Link> */}
             </div>
-            <Input id="password" type="password" required />
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <Button type="submit" className="w-full">
             Login
           </Button>
-        </div>
+        </form>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link to="/register" className="underline">
