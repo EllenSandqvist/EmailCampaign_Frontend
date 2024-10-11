@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,39 +15,14 @@ import { Link } from "react-router-dom";
 
 interface Campaign {
   id: number;
-  title: string;
-  company: string;
-  summary: string;
-  createdAt: string;
-  emailsSent: number;
+  campaignName: string;
+  companyName: string;
+  companyDescription: string;
+  productDescription: string;
+  targetAudience: String[];
+  createdAt: string | number | Date;
+  userId: String;
 }
-
-const campaigns: Campaign[] = [
-  {
-    id: 1,
-    title: "Summer Sale",
-    company: "Fashion Co.",
-    summary: "Promote our new summer collection with exclusive discounts.",
-    createdAt: "2023-06-15",
-    emailsSent: 5000,
-  },
-  {
-    id: 2,
-    title: "Product Launch",
-    company: "Tech Innovations",
-    summary: "Introduce our revolutionary smartphone to the market.",
-    createdAt: "2023-07-01",
-    emailsSent: 10000,
-  },
-  {
-    id: 3,
-    title: "Customer Appreciation",
-    company: "Gourmet Delights",
-    summary: "Thank our loyal customers with special offers and recipes.",
-    createdAt: "2023-06-30",
-    emailsSent: 3000,
-  },
-];
 
 const presetAudiences = [
   "Young Adults (18-25)",
@@ -58,9 +33,39 @@ const presetAudiences = [
 ];
 
 export default function MainPage() {
+  // state for all fetched campaigns:
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  //state for creating a new campaign:
   const [selectedAudiences, setSelectedAudiences] = useState<string[]>([]);
-  const [customAudience1, setCustomAudience1] = useState("");
-  const [customAudience2, setCustomAudience2] = useState("");
+  const [customAudience, setCustomAudience] = useState<string>("");
+  const [campaignTitle, setCampaignTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyDescription, setCompanyDescription] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+
+  const fetchCampaigns = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/campaigns", {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Could not fetch campaigns");
+      }
+      const data: Campaign[] = await response.json();
+
+      console.log(data);
+      setCampaigns(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
 
   const handleAudienceSelect = (value: string) => {
     if (!selectedAudiences.includes(value)) {
@@ -75,10 +80,12 @@ export default function MainPage() {
   const handleAddCustomAudience = (value: string) => {
     if (value && !selectedAudiences.includes(value)) {
       setSelectedAudiences([...selectedAudiences, value]);
-      if (value === customAudience1) setCustomAudience1("");
-      if (value === customAudience2) setCustomAudience2("");
+
+      setCustomAudience("");
     }
   };
+
+  //Code for POST campaign and updating local "campaign"-state
 
   return (
     <>
@@ -92,18 +99,23 @@ export default function MainPage() {
                 className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300"
               >
                 <CardHeader className="bg-gray-50 border-b">
-                  <CardTitle className="text-lg">{campaign.title}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {campaign.campaignName}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="font-semibold text-primary">
-                    {campaign.company}
+                    {campaign.companyName}
                   </p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    {campaign.summary}
+                    {campaign.productDescription}
                   </p>
                   <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-                    <span>Created: {campaign.createdAt}</span>
-                    <span>Emails sent: {campaign.emailsSent}</span>
+                    <span>
+                      Created:{" "}
+                      {new Date(campaign.createdAt).toLocaleDateString()}
+                    </span>
+                    {/* <span>Emails sent: {campaign.emailsSent}</span> */}
                   </div>
                 </CardContent>
               </Card>
@@ -122,18 +134,28 @@ export default function MainPage() {
               <Input
                 placeholder="Campaign Title"
                 className="bg-primary-foreground text-primary"
+                type="text"
+                value={campaignTitle}
+                onChange={(e) => setCampaignTitle(e.target.value)}
               />
               <Input
                 placeholder="Company Name"
                 className="bg-primary-foreground text-primary"
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
               />
               <Textarea
                 placeholder="Company Description"
                 className="bg-primary-foreground text-primary"
+                value={companyDescription}
+                onChange={(e) => setCompanyDescription(e.target.value)}
               />
               <Textarea
                 placeholder="Product Description"
                 className="bg-primary-foreground text-primary"
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
               />
               <div className="space-y-2">
                 <label className="text-sm font-medium">Target Audience</label>
@@ -172,14 +194,14 @@ export default function MainPage() {
                 <div className="flex gap-2 mt-2">
                   <Input
                     placeholder="Custom Audience"
-                    value={customAudience1}
-                    onChange={(e) => setCustomAudience1(e.target.value)}
+                    value={customAudience}
+                    onChange={(e) => setCustomAudience(e.target.value)}
                     className="bg-primary-foreground text-primary"
                   />
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => handleAddCustomAudience(customAudience1)}
+                    onClick={() => handleAddCustomAudience(customAudience)}
                     className="bg-primary-foreground text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     Add
