@@ -86,6 +86,40 @@ export default function MainPage() {
   };
 
   //Code for POST campaign and updating local "campaign"-state
+  const createCampaign: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:3000/campaigns", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignName: campaignTitle,
+          companyName: companyName,
+          companyDescription: companyDescription,
+          productDescription: productDescription,
+          targetAudience: selectedAudiences,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not create campaign");
+      }
+
+      const data = await response.json();
+      setCampaigns([...campaigns, data]);
+    } catch (error) {
+      console.error("Error creating campaign: ", error);
+      alert("Error creating campaign. Please try again.");
+    } finally {
+      setCampaignTitle("");
+      setCompanyName("");
+      setCompanyDescription("");
+      setProductDescription("");
+      setSelectedAudiences([]);
+    }
+  };
 
   return (
     <>
@@ -130,7 +164,7 @@ export default function MainPage() {
             <CardTitle className="text-2xl">Create New Campaign</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={createCampaign}>
               <Input
                 placeholder="Campaign Title"
                 className="bg-primary-foreground text-primary"
@@ -178,7 +212,7 @@ export default function MainPage() {
                   ))}
                 </div>
 
-                <Select onValueChange={handleAudienceSelect}>
+                <Select onValueChange={handleAudienceSelect} value={""}>
                   <SelectTrigger className="bg-primary-foreground text-primary">
                     <SelectValue placeholder="Select target audience" />
                   </SelectTrigger>
@@ -193,6 +227,7 @@ export default function MainPage() {
 
                 <div className="flex gap-2 mt-2">
                   <Input
+                    type="text"
                     placeholder="Custom Audience"
                     value={customAudience}
                     onChange={(e) => setCustomAudience(e.target.value)}

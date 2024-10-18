@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,18 @@ interface Email {
   content: string;
 }
 
+interface Campaign {
+  id: number;
+  campaignName: string;
+  companyName: string;
+  companyDescription: string;
+  productDescription: string;
+  targetAudience: String[];
+  createdAt: string | number | Date;
+  userId: String;
+}
+
+//TODO Fetch av campaign är ok, uppdatera return med rätt värden
 export default function EmailMarketingCampaign() {
   const { id } = useParams();
   const [emails, setEmails] = useState<Email[]>([
@@ -25,8 +37,32 @@ export default function EmailMarketingCampaign() {
       content: "Exciting news! We're launching a revolutionary product...",
     },
   ]);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [newSubject, setNewSubject] = useState("");
   const [newContent, setNewContent] = useState("");
+
+  const fetchCampaign = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/campaigns/${id}`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Could not fetch campaign");
+      }
+      const data: Campaign = await response.json();
+
+      console.log(data);
+      setCampaign(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaign();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +77,7 @@ export default function EmailMarketingCampaign() {
     <div className="w-full">
       <div className="bg-primary text-primary-foreground rounded-lg p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold">Summer Sale Campaign</h2>
+          <h2 className="text-3xl font-bold">{campaign?.campaignName}</h2>
           <Link
             to="/campaigns"
             className="flex items-center text-sm font-medium hover:underline"
@@ -51,7 +87,7 @@ export default function EmailMarketingCampaign() {
           </Link>
         </div>
         <p className="text-lg mb-2">
-          <strong>Company:</strong> SunnyDays Apparel
+          <strong>Company:</strong> {campaign?.companyName}
         </p>
         <p className="text-lg mb-2">
           <strong>Product:</strong> Beach-ready summer collection

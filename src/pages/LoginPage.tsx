@@ -10,15 +10,18 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "../context/authContext";
 
 interface ResponseData {
   loggedIn: Boolean;
+  username: string;
 }
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { login } = useAuth();
 
   const handleLogin: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -40,6 +43,7 @@ export default function LoginForm() {
       //if loggedIn = true, redirect to campaigns page
       if (data.loggedIn) {
         setIsLoggedIn(true);
+        login(data.username);
       }
     } catch (error) {
       console.error("error");

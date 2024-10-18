@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 import { UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../../context/authContext";
 
 export function Header() {
+  const { user, logout } = useAuth();
+
+  console.log(user);
   return (
     <header className="bg-primary text-primary-foreground p-4">
       <nav className="flex items-center justify-between p-4 bg-primary text-primary-foreground">
@@ -15,10 +19,14 @@ export function Header() {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <UserCircle className="h-6 w-6" />
-            <span>John Doe</span>
+            <span>{user}</span>
           </div>
           <Button variant="secondary">New Campaign</Button>
-          <Button variant="destructive">Log out</Button>
+          {user && (
+            <Button variant="destructive" onClick={logout}>
+              Log out
+            </Button>
+          )}
         </div>
       </nav>
     </header>
