@@ -255,7 +255,7 @@ export default function EmailMarketingCampaign() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Generated Emails</h2>
           <ul className="space-y-6">
-            {emails?.map((email, index) => (
+            {emails?.map((email) => (
               <Link to={`/campaigns/${id}/${email.id}`} key={email.id}>
                 <li className="bg-card text-card-foreground rounded-lg p-4 shadow mb-4">
                   <h3 className="text-xl font-semibold mb-2">
