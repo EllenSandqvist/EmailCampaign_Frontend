@@ -126,12 +126,9 @@ export default function MainPage() {
       <section>
         <h2 className="text-2xl font-semibold mb-4">Current Campaigns</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {campaigns.map((campaign, index) => (
-            <Link to={`/campaigns/${campaign.id}`}>
-              <Card
-                key={index}
-                className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300"
-              >
+          {campaigns.map((campaign) => (
+            <Link to={`/campaigns/${campaign.id}`} key={campaign.id}>
+              <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="bg-gray-50 border-b">
                   <CardTitle className="text-lg">
                     {campaign.campaignName}

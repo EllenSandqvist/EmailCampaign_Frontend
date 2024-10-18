@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useCompletion } from "ai/react";
 
 interface Email {
-  eid?: number;
+  id: string;
   subject: string;
   content: string;
 }
@@ -25,21 +26,14 @@ interface Campaign {
 //TODO Fetch av campaign är ok, uppdatera return med rätt värden
 export default function EmailMarketingCampaign() {
   const { id } = useParams();
-  const [emails, setEmails] = useState<Email[]>([
-    {
-      eid: 1,
-      subject: "Exclusive offer for our valued customers",
-      content: "Dear customer, we have an amazing deal just for you...",
-    },
-    {
-      eid: 2,
-      subject: "New product launch - be the first to know!",
-      content: "Exciting news! We're launching a revolutionary product...",
-    },
-  ]);
+  const [emails, setEmails] = useState<Email[]>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [newSubject, setNewSubject] = useState("");
-  const [newContent, setNewContent] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [generatedContent, setGeneratedContent] = useState({
+    title: "",
+    content: "",
+  });
 
   const fetchCampaign = async () => {
     try {
@@ -64,20 +58,172 @@ export default function EmailMarketingCampaign() {
     fetchCampaign();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newSubject && newContent) {
-      setEmails([...emails, { subject: newSubject, content: newContent }]);
-      setNewSubject("");
-      setNewContent("");
+  const fetchEmails = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/campaigns/${id}/emails`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Could not fetch emails");
+      }
+      const data: Email[] = await response.json();
+
+      console.log(data);
+      setEmails(data);
+    } catch (error) {
+      console.error(error);
     }
   };
+
+  useEffect(() => {
+    fetchEmails();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(
+        `http://localhost:3000/campaigns/${id}/emails`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: title,
+            content: content,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Could not save email. Try again");
+      }
+      const data = await response.json();
+      setEmails([...emails, data]);
+    } catch (error) {
+      console.error(error);
+      alert("Could not save email. Please try again");
+    }
+  };
+
+  const { complete, completion, isLoading } = useCompletion({
+    api: "http://localhost:3000/ai",
+    credentials: "include",
+    onResponse: (response) => {
+      console.log("Streaming started", response);
+      const reader = response.body?.getReader();
+      if (reader) {
+        readStream(reader);
+      }
+    },
+    onFinish: (prompt, completion) => {
+      console.log("Streaming finished", completion);
+    },
+  });
+
+  const readStream = async (
+    reader: ReadableStreamDefaultReader<Uint8Array>
+  ) => {
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith("data: ")) {
+          const jsonStr = line.slice(6);
+          if (jsonStr === "[DONE]") {
+            console.log("Stream complete");
+          } else {
+            try {
+              const parsedData = JSON.parse(jsonStr);
+              setGeneratedContent((prev) => ({ ...prev, ...parsedData }));
+            } catch (error) {
+              console.error("Failed to parse JSON:", error);
+            }
+          }
+        }
+      }
+
+      buffer = lines[lines.length - 1];
+    }
+  };
+  useEffect(() => {
+    if (completion) {
+      try {
+        const parsedCompletion = JSON.parse(completion);
+        setGeneratedContent(parsedCompletion);
+      } catch (error) {
+        console.error("Failed to parse completion:", error);
+      }
+    }
+  }, [completion]);
+
+  useEffect(() => {
+    setTitle(generatedContent.title);
+    setContent(generatedContent.content);
+  }, [generatedContent]);
+
+  const handleAiCheck = async () => {
+    try {
+      await complete("", {
+        body: { title, content },
+        headers: {
+          "Content-Type": "application/json",
+          mode: "check",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleAiGenerate = async () => {
+    try {
+      await complete("", {
+        body: {
+          company: campaign?.companyName,
+          productDescription: campaign?.productDescription,
+          audience: campaign?.targetAudience,
+        },
+        headers: {
+          "Content-Type": "application/json",
+          mode: "generate",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setGeneratedContent({ title: "", content: "" });
+  //   await complete("", {
+  //     body: { topic, audience, tone, length },
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  // };
 
   return (
     <div className="w-full">
       <div className="bg-primary text-primary-foreground rounded-lg p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold">{campaign?.campaignName}</h2>
+          <h2 className="text-3xl font-bold">{campaign?.companyName}</h2>
           <Link
             to="/campaigns"
             className="flex items-center text-sm font-medium hover:underline"
@@ -87,31 +233,37 @@ export default function EmailMarketingCampaign() {
           </Link>
         </div>
         <p className="text-lg mb-2">
-          <strong>Company:</strong> {campaign?.companyName}
+          <strong>Campaign:</strong> {campaign?.campaignName}
         </p>
         <p className="text-lg mb-2">
-          <strong>Product:</strong> Beach-ready summer collection
+          <strong>Product Description:</strong> {campaign?.productDescription}
         </p>
-        <p className="text-lg">
-          <strong>Target Audience:</strong> Young adults aged 18-35 interested
-          in fashion and outdoor activities
-        </p>
+        <div className="text-lg">
+          <strong>Target Audience:</strong>{" "}
+          <ul>
+            {campaign?.targetAudience.map((audience, index) => (
+              <li className="list-disc ml-4" key={index}>
+                {" "}
+                {audience}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div>
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Generated Emails</h2>
           <ul className="space-y-6">
-            {emails.map((email, index) => (
-              <Link to={`/campaigns/${id}/${email.eid}`}>
-                <li
-                  key={index}
-                  className="bg-card text-card-foreground rounded-lg p-4 shadow mb-4"
-                >
+            {emails?.map((email, index) => (
+              <Link to={`/campaigns/${id}/${email.id}`} key={email.id}>
+                <li className="bg-card text-card-foreground rounded-lg p-4 shadow mb-4">
                   <h3 className="text-xl font-semibold mb-2">
                     {email.subject}
                   </h3>
-                  <p className="text-muted-foreground">{email.content}</p>
+                  <p className="text-muted-foreground truncate">
+                    {email.content}
+                  </p>
                 </li>
               </Link>
             ))}
@@ -120,7 +272,10 @@ export default function EmailMarketingCampaign() {
 
         <section>
           <h2 className="text-2xl font-semibold mb-4">Create New Email</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={handleSave}
+            className="space-y-4 border p-4 bg-white rounded-lg shadow mb-4"
+          >
             <div>
               <label
                 htmlFor="subject"
@@ -131,10 +286,10 @@ export default function EmailMarketingCampaign() {
               <Input
                 id="subject"
                 type="text"
-                value={newSubject}
-                onChange={(e) => setNewSubject(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter email subject"
-                required
+                // required
               />
             </div>
             <div>
@@ -146,14 +301,32 @@ export default function EmailMarketingCampaign() {
               </label>
               <Textarea
                 id="content"
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 placeholder="Enter email content"
-                rows={5}
-                required
+                rows={10}
+                // required
               />
             </div>
-            <Button type="submit">Create Email</Button>
+            <div className="flex flex-row justify-between">
+              <div className="flex flex-row space-x-2">
+                <Button onClick={handleAiGenerate}>let AI do it!</Button>
+                <Button
+                  onClick={() => {
+                    handleAiCheck();
+                  }}
+                >
+                  AI grammer check
+                </Button>
+              </div>
+              <Button
+                onClick={handleSave}
+                type="submit"
+                className="bg-green-700 hover:bg-green-600"
+              >
+                Save Email
+              </Button>
+            </div>
           </form>
         </section>
       </div>
