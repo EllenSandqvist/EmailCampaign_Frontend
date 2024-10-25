@@ -46,11 +46,14 @@ export default function MainPage() {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch("http://localhost:3000/campaigns", {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        "https://email-campaign-platform.vercel.app/campaigns",
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       if (!response.ok) {
         throw new Error("Could not fetch campaigns");
       }
@@ -90,18 +93,21 @@ export default function MainPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/campaigns", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campaignName: campaignTitle,
-          companyName: companyName,
-          companyDescription: companyDescription,
-          productDescription: productDescription,
-          targetAudience: selectedAudiences,
-        }),
-      });
+      const response = await fetch(
+        "https://email-campaign-platform.vercel.app/campaigns",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaignName: campaignTitle,
+            companyName: companyName,
+            companyDescription: companyDescription,
+            productDescription: productDescription,
+            targetAudience: selectedAudiences,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Could not create campaign");

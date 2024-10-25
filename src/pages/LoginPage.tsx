@@ -27,12 +27,15 @@ export default function LoginForm() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        "https://email-campaign-platform.vercel.app/login",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Something went wrong");

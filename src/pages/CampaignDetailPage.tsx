@@ -37,11 +37,14 @@ export default function EmailMarketingCampaign() {
 
   const fetchCampaign = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/campaigns/${id}`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `https://email-campaign-platform.vercel.app/campaigns/${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       if (!response.ok) {
         throw new Error("Could not fetch campaign");
       }
@@ -61,7 +64,7 @@ export default function EmailMarketingCampaign() {
   const fetchEmails = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/campaigns/${id}/emails`,
+        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails`,
         {
           method: "GET",
           credentials: "include",
@@ -88,7 +91,7 @@ export default function EmailMarketingCampaign() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:3000/campaigns/${id}/emails`,
+        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails`,
         {
           method: "POST",
           credentials: "include",
@@ -111,7 +114,7 @@ export default function EmailMarketingCampaign() {
   };
 
   const { complete, completion, isLoading } = useCompletion({
-    api: "http://localhost:3000/ai",
+    api: "https://email-campaign-platform.vercel.app/ai",
     credentials: "include",
     onResponse: (response) => {
       console.log("Streaming started", response);

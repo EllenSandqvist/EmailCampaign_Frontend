@@ -18,7 +18,7 @@ export default function Component() {
   const fetchEmail = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/campaigns/${id}/emails/${eid}`,
+        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails/${eid}`,
         {
           method: "GET",
           credentials: "include",
@@ -46,7 +46,7 @@ export default function Component() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/campaigns/${id}/emails/${eid}/send",
+        "https://email-campaign-platform.vercel.app/campaigns/${id}/emails/${eid}/send",
         {
           method: "POST",
           credentials: "include",
