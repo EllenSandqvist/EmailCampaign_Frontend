@@ -113,7 +113,8 @@ export default function EmailMarketingCampaign() {
     }
   };
 
-  const { complete, completion, isLoading } = useCompletion({
+  // Ändrad kod från tidigare const { complete, completion, isLoading } = useCompletion({
+  const { complete, completion } = useCompletion({
     api: "https://email-campaign-platform.vercel.app/ai",
     credentials: "include",
     onResponse: (response) => {
@@ -123,7 +124,8 @@ export default function EmailMarketingCampaign() {
         readStream(reader);
       }
     },
-    onFinish: (prompt, completion) => {
+    // Ändrad kod från tidigare onFinish: (prompt, completion) => {
+    onFinish: (completion) => {
       console.log("Streaming finished", completion);
     },
   });

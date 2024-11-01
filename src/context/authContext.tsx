@@ -1,5 +1,4 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
-import { Navigate } from "react-router-dom";
 
 interface AuthContextType {
   isLoggedIn: boolean;

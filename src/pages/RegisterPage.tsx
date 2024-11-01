@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface RequestData {
-  name: String;
-  email: String;
-  password: String;
-}
+// interface RequestData {
+//   name: String;
+//   email: String;
+//   password: String;
+// }
 
 interface ResponseData {
   registered: Boolean;
