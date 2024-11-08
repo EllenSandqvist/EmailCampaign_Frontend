@@ -4,16 +4,14 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  // server: {
-  //   proxy: {
-  //     // Här proxas alla förfrågningar som inte matchar lokala filer till den externa servern
-  //     "/api": {
-  //       target: "https://email-campaign-platform.vercel.app",
-  //       changeOrigin: true,
-  //       rewrite: (path) => path.replace(/^\/api/, ""),
-  //     },
-  //   },
-  // },
+  server: {
+    watch: {
+      usePolling: true,
+    },
+    host: true,
+    strictPort: true,
+    port: 5173,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
