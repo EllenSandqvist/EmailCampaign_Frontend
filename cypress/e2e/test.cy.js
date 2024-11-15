@@ -10,5 +10,9 @@ describe("template spec", () => {
     cy.get('[data-testid="MarketPro-title"]')
       .should("exist")
       .should("have.text", "MarketPro");
+
+    cy.get('[id="email"]')
+      .should("exist")
+      .and("have.attr", "placeholder", "name@example.com");
   });
 });
