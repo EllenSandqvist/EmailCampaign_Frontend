@@ -15,6 +15,8 @@ interface ResponseData {
 }
 
 export default function Component() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,14 +34,11 @@ export default function Component() {
     }
 
     try {
-      const response = await fetch(
-        "https://email-campaign-platform.vercel.app/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
-        }
-      );
+      const response = await fetch(`${backendUrl}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
       if (!response.ok) {
         throw new Error("Något gick fel");

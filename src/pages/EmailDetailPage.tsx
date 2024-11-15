@@ -10,6 +10,8 @@ interface Email {
 }
 
 export default function Component() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const { id, eid } = useParams();
   const [email, setEmail] = useState<Email | null>(null);
   const [recipients, setRecipients] = useState("");
@@ -18,7 +20,7 @@ export default function Component() {
   const fetchEmail = async () => {
     try {
       const response = await fetch(
-        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails/${eid}`,
+        `${backendUrl}/campaigns/${id}/emails/${eid}`,
         {
           method: "GET",
           credentials: "include",
@@ -46,7 +48,7 @@ export default function Component() {
 
     try {
       const response = await fetch(
-        "https://email-campaign-platform.vercel.app/campaigns/${id}/emails/${eid}/send",
+        `${backendUrl}/campaigns/${id}/emails/${eid}/send`,
         {
           method: "POST",
           credentials: "include",

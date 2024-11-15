@@ -25,6 +25,8 @@ interface Campaign {
 
 //TODO Fetch av campaign är ok, uppdatera return med rätt värden
 export default function EmailMarketingCampaign() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const { id } = useParams();
   const [emails, setEmails] = useState<Email[]>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -37,14 +39,11 @@ export default function EmailMarketingCampaign() {
 
   const fetchCampaign = async () => {
     try {
-      const response = await fetch(
-        `https://email-campaign-platform.vercel.app/campaigns/${id}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await fetch(`${backendUrl}/campaigns/${id}`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!response.ok) {
         throw new Error("Could not fetch campaign");
       }
@@ -63,14 +62,11 @@ export default function EmailMarketingCampaign() {
 
   const fetchEmails = async () => {
     try {
-      const response = await fetch(
-        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await fetch(`${backendUrl}/campaigns/${id}/emails`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!response.ok) {
         throw new Error("Could not fetch emails");
       }
@@ -90,18 +86,15 @@ export default function EmailMarketingCampaign() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        `https://email-campaign-platform.vercel.app/campaigns/${id}/emails`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subject: title,
-            content: content,
-          }),
-        }
-      );
+      const response = await fetch(`${backendUrl}/campaigns/${id}/emails`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: title,
+          content: content,
+        }),
+      });
       if (!response.ok) {
         throw new Error("Could not save email. Try again");
       }
@@ -115,7 +108,7 @@ export default function EmailMarketingCampaign() {
 
   // Ändrad kod från tidigare const { complete, completion, isLoading } = useCompletion({
   const { complete, completion } = useCompletion({
-    api: "https://email-campaign-platform.vercel.app/ai",
+    api: `${backendUrl}/ai`,
     credentials: "include",
     onResponse: (response) => {
       console.log("Streaming started", response);

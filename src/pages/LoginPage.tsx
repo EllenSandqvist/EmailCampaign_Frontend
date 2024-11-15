@@ -18,6 +18,8 @@ interface ResponseData {
 }
 
 export default function LoginForm() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,7 +30,9 @@ export default function LoginForm() {
 
     try {
       const response = await fetch(
-        "https://email-campaign-platform.vercel.app/login",
+        `${backendUrl}/login`,
+        // "https://email-campaign-platform.vercel.app/login",
+        // "http://localhost:3000/login",
         {
           method: "POST",
           credentials: "include",
