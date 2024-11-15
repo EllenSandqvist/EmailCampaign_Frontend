@@ -14,7 +14,9 @@ export function Header() {
           to="/campaigns"
           className="flex items-center text-sm font-medium hover:underline"
         >
-          <h1 className="text-2xl font-bold">MarketPro</h1>
+          <h1 className="text-2xl font-bold" data-testid="MarketPro-title">
+            MarketPro
+          </h1>
         </Link>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
