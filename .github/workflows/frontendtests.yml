@@ -22,22 +22,32 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-north-1"
         run: |
-          echo "Waiting for Amplify deployment to complete..."
-          amplify_status=""
-          while [ "$amplify_status" != "SUCCEED" ]; do
-            amplify_status=$(aws amplify get-job \
-              --app-id ${{ secrets.AWS_AMPLIFY_APP_ID }} \
-              --branch-name main \
-              --query 'job.summary.status' \
-              --output text)
-            echo "Amplify status: $amplify_status"
-            if [ "$amplify_status" == "FAILED" ]; then
-              echo "Amplify deployment failed!"
-              exit 1
-            fi
-            sleep 30
-          done
-          echo "Amplify deployment succeeded!"
+          echo "Fetching the latest job ID for the main branch..."
+           job_id=$(aws amplify list-jobs \
+             --app-id ${{ secrets.AWS_AMPLIFY_APP_ID }} \
+             --branch-name main \
+             --query 'jobSummaries[0].jobId' \
+             --output text)
+
+           echo "Latest job ID: $job_id"
+           echo "Waiting for Amplify deployment to complete..."
+           
+           amplify_status=""
+           while [ "$amplify_status" != "SUCCEED" ]; do
+             amplify_status=$(aws amplify get-job \
+               --app-id ${{ secrets.AWS_AMPLIFY_APP_ID }} \
+               --branch-name main \
+               --job-id $job_id \
+               --query 'job.summary.status' \
+               --output text)
+             echo "Amplify status: $amplify_status"
+             if [ "$amplify_status" == "FAILED" ]; then
+               echo "Amplify deployment failed!"
+               exit 1
+             fi
+             sleep 30
+           done
+           echo "Amplify deployment succeeded!"
 
       # Step 3: Install Cypress dependencies
       - name: Install dependencies
