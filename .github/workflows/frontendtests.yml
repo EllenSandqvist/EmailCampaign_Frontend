@@ -1,0 +1,47 @@
+name: Run Cypress Tests After Amplify Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Wait for Amplify deployment
+      - name: Wait for Amplify deployment
+        run: |
+          echo "Waiting for Amplify deployment to complete..."
+          amplify_status=""
+          while [ "$amplify_status" != "SUCCEED" ]; do
+            amplify_status=$(aws amplify get-job \
+              --app-id ${{ secrets.AWS_AMPLIFY_APP_ID }} \
+              --branch-name main \
+              --query 'job.summary.status' \
+              --output text)
+            echo "Amplify status: $amplify_status"
+            if [ "$amplify_status" == "FAILED" ]; then
+              echo "Amplify deployment failed!"
+              exit 1
+            fi
+            sleep 30
+          done
+          echo "Amplify deployment succeeded!"
+
+      # Step 3: Install Cypress dependencies
+      - name: Install dependencies
+        run: |
+          npm install
+          npx cypress install
+
+      # Step 4: Run Cypress tests
+      - name: Run Cypress Tests
+        env:
+          BASE_URL: https://${{ secrets.AWS_AMPLIFY_DOMAIN }}
+        run: npx cypress run --env baseUrl=$BASE_URL
